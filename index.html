@@ -106,10 +106,10 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
   <main id="shelf"></main>
   <div id="empty" hidden>
     <div class="wm">nothing here yet.</div>
-    <p>Add m4b audiobooks from the Files app.</p>
+    <p>Add audiobooks (m4b, mp4, m4a, mp3 and more) from the Files app.</p>
     <button id="addBtn2">add audiobooks</button>
   </div>
-  <input id="file" type="file" accept=".m4b,.m4a,.mp3,audio/mp4,audio/x-m4b,audio/*" multiple hidden>
+  <input id="file" type="file" multiple hidden>
   <input id="pfile" type="file" accept="application/json,.json" hidden>
 </div>
 
@@ -214,18 +214,21 @@ const probe = f => new Promise(r => {
   a.onerror = () => { URL.revokeObjectURL(u); r(0); }; a.src = u;
 });
 async function addFiles(fl) {
+  let n = 0;
   for (const f of fl) {
     try {
       toast('adding ' + f.name + '…');
       let t = {}; try { t = await parseM4B(f); } catch (e) {}
-      const m = {id: uid(), title: (t.title || f.name.replace(/\.[^.]+$/, '')).trim(), author: t.author || '', dur: t.dur || await probe(f),
+      const dur = t.dur || await probe(f);
+      if (!dur) { toast(f.name + " isn't an audio file this browser can play"); continue; }
+      const m = {id: uid(), title: (t.title || f.name.replace(/\.[^.]+$/, '')).trim(), author: t.author || '', dur,
         chapters: t.chapters || [], cover: t.cover || null, size: f.size, added: Date.now()};
       await tx(['books', 'files'], 'readwrite', (b, fs) => { b.put(m); fs.put(f, m.id); });
-      books.push(m); renderLib();
+      books.push(m); n++; renderLib();
       if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
     } catch (e) { toast("couldn't add " + f.name + " (is the device full?)"); return; }
   }
-  toast('added');
+  if (n) toast(n === 1 ? 'added' : 'added ' + n + ' books');
 }
 
 /* player */
@@ -379,7 +382,7 @@ $('#addBtn').onclick = pick; $('#addBtn2').onclick = pick;
 $('#file').onchange = e => { const fl = [...e.target.files]; e.target.value = ''; if (fl.length) addFiles(fl); };
 $('#editBtn').onclick = () => { const on = document.body.classList.toggle('editing'); $('#editBtn').textContent = on ? 'done' : 'edit'; };
 addEventListener('dragover', e => e.preventDefault());
-addEventListener('drop', e => { e.preventDefault(); const fl = [...(e.dataTransfer ? e.dataTransfer.files : [])].filter(f => /\.(m4b|m4a|mp3)$/i.test(f.name) || /^audio/.test(f.type)); if (fl.length) addFiles(fl); });
+addEventListener('drop', e => { e.preventDefault(); const fl = [...(e.dataTransfer ? e.dataTransfer.files : [])]; if (fl.length) addFiles(fl); });
 
 /* start */
 tx(['books'], 'readonly', s => s.getAll()).then(r => { books = r || []; renderLib(); }).catch(() => { renderLib(); toast('storage is unavailable in this browser mode'); });
