@@ -1,18 +1,17 @@
 {
-  "name": "alcove.",
-  "short_name": "alcove.",
-  "description": "A quiet place to read your EPUBs and PDFs.",
+  "name": "alcove. listen",
+  "short_name": "alcove. listen",
+  "description": "A quiet place to listen to your audiobooks.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#f5f0e8",
+  "theme_color": "#f5f0e8",
   "icons": [
     {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
     {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
     {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
   ],
-  "file_handlers": [{"action": "./", "accept": {"application/epub+zip": [".epub"], "application/pdf": [".pdf"]}}],
-  "launch_handler": {"client_mode": "focus-existing"}
+  "file_handlers": [{"action": "./", "accept": {"audio/mp4": [".m4b", ".m4a"], "video/mp4": [".mp4"], "audio/mpeg": [".mp3"]}}]
 }
